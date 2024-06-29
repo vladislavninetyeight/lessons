@@ -1,74 +1,36 @@
 package main
 
 import (
+	"context"
+	"math/rand"
+	"os"
+	"os/signal"
 	"testing"
 )
 
-var num = 10000
+var num = 1000000
 
-type sumSquaresTest struct {
-	arg      int
+type sumTest struct {
+	arg      []int
 	expected int32
 }
 
-var sumSquaresTests = []sumSquaresTest{
-	sumSquaresTest{1000, 332833500},
-	sumSquaresTest{100, 328350},
-	sumSquaresTest{700, 114088450},
+var sumTests = []sumTest{
+	sumTest{[]int{1, 2, 5, 6, 4, 1, 3, 4, 5, 6, 7, 7}, 51},
+	sumTest{[]int{1, 1, 2, 4}, 8},
+	sumTest{[]int{7, 7, 4, 8, 7, 2, 3, 4, 5, 1, 2, 4, 4}, 58},
 }
 
-func TestSumSquaresAsyncAtomic(t *testing.T) {
-	for _, test := range sumSquaresTests {
-		if output := sumSquaresAsyncAtomic(test.arg); output != test.expected {
-			t.Errorf("Получившийся результат: %q не соответствует ожидаемому: %q", output, test.expected)
-		}
-	}
-}
-
-func TestSumSquaresAsyncMutex(t *testing.T) {
-	for _, test := range sumSquaresTests {
-		if output := sumSquaresAsyncMutex(test.arg); output != test.expected {
-			t.Errorf("Получившийся результат: %q не соответствует ожидаемому: %q", output, test.expected)
-		}
-	}
-}
-
-func TestSumSquaresAsyncChannel(t *testing.T) {
-	for _, test := range sumSquaresTests {
-		if output := sumSquaresAsyncChannel(test.arg); output != test.expected {
-			t.Errorf("Получившийся результат: %q не соответствует ожидаемому: %q", output, test.expected)
-		}
-	}
-}
-
-func TestSumSquares(t *testing.T) {
-	for _, test := range sumSquaresTests {
-		if output := sumSquares(test.arg); output != test.expected {
-			t.Errorf("Получившийся результат: %q не соответствует ожидаемому: %q", output, test.expected)
-		}
-	}
-}
-
-func BenchmarkSumSquaresAsyncAtomic(b *testing.B) {
+func BenchmarkSumAsync(b *testing.B) {
+	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
 	for i := 0; i < b.N; i++ {
-		sumSquaresAsyncAtomic(num)
+		sumAsync(ctx, rand.Perm(num))
 	}
 }
 
-func BenchmarkSumSquaresAsyncMutex(b *testing.B) {
+func BenchmarkSum(b *testing.B) {
+	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
 	for i := 0; i < b.N; i++ {
-		sumSquaresAsyncMutex(num)
-	}
-}
-
-func BenchmarkSumSquaresAsyncChannel(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		sumSquaresAsyncChannel(num)
-	}
-}
-
-func BenchmarkSumSquares(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		sumSquares(num)
+		sum(ctx, rand.Perm(num))
 	}
 }
