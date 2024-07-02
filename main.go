@@ -1,15 +1,21 @@
 package main
 
 import (
+	"awesomeProject/NewTime"
+	"awesomeProject/User"
+	"awesomeProject/calculate"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
 	"os/signal"
 	"runtime"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"time"
 )
 
 // 1. Исправить гонку
@@ -17,9 +23,66 @@ import (
 // 3. Реализовал преждевременное прерывание программы с помощью ctrl+c с выводом промежуточного результата. Здесь нужно использовать context (signal.NotifyContext())
 
 func main() {
+	firstPart()
+	//secondPart()
+	//thirdPart()
+	//fourthPart()
+}
+
+func fourthPart() {
+	fmt.Println(calculate.Calculate(1, "2", calculate.AmountStruct{Amount: 3}))
+}
+
+func thirdPart() {
+	users := User.Users{User.User{
+		ID:        "1",
+		CreatedAt: time.Time{}.AddDate(2014, 7, 24),
+	},
+		User.User{
+			ID:        "2",
+			CreatedAt: time.Time{}.AddDate(2013, 7, 24),
+		},
+		User.User{
+			ID:        "3",
+			CreatedAt: time.Time{}.AddDate(2017, 7, 24),
+		}}
+
+	sort.Sort(users)
+	fmt.Println(users)
+}
+
+func secondPart() {
+	timeISO := NewTime.TimeISO8601{}
+	timeUNIX := NewTime.TimeUnix{}
+
+	unix := 1719928793
+	iso := "2020-07-10 15:00:00.000"
+	jsonUNIX, err := json.Marshal(unix)
+
+	if err != nil {
+		panic(err)
+	}
+
+	jsonISO, _ := json.Marshal(iso)
+	err = timeISO.UnmarshalJSON(jsonISO)
+	if err != nil {
+		panic(err)
+	}
+
+	err = timeUNIX.UnmarshalJSON(jsonUNIX)
+	if err != nil {
+		panic(err)
+	}
+
+	marshalJsonIso, err := timeISO.MarshalJSON()
+	marshalJsonUNIX, err := timeUNIX.MarshalJSON()
+
+	fmt.Print(timeISO.Time, timeUNIX.Time, string(marshalJsonIso), string(marshalJsonUNIX))
+}
+
+func firstPart() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT)
 	defer stop()
-
 	fmt.Println(sum(ctx, rand.Perm(10000000)))
 	fmt.Println(sumAsync(ctx, rand.Perm(10000000)))
 }
